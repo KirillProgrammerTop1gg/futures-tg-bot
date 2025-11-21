@@ -27,14 +27,9 @@ from keyboards import (
 )
 from typing import Optional, Union, Dict, List
 from models import User
+from exchanges_API import exchanges_API
 
 dp = Dispatcher()
-
-# binance_client = UMFutures(key='kA2YcKStacnfOgU7uqr2Nz1G6A4VClVN0qmutdglwrG9Iq82iAATBPg5PtjBR5qL', secret='4pmAnpeUa2WVxjVIil564mqZiretCXssvcodQHpT3mE02ErNQlouvPqKcjKYP71N')
-# bybit_client = HTTP(api_key='VNAZrkV1xhSoWbhkGS',api_secret='ATGhsqAXXhn0g93de33nFE1NfbAwzcY0zGNN')
-# okx_clientPublic = PublicData.PublicAPI(flag='0')
-# okx_clientMarket =  MarketData.MarketAPI(flag='0')
-# okx_clientTrade = Trade.TradeAPI('07002d29-4869-42c6-b279-d35e804f44e6', '34C72B59BE1558297B691506FD0ACDBD', 'Hgs#cxb8Fg', False, '0')
 
 
 class WhiteListForm(StatesGroup):
