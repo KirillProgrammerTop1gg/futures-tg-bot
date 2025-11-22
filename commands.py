@@ -6,6 +6,12 @@ HELP_COMMAND = Command("help")
 ADD_TO_WHITELIST_COMMAND = Command("add_user_to_whitelist")
 GET_WHITELIST_COMMAND = Command("get_whitelist")
 DEL_IN_WHITELIST_COMMAND = Command("del_user_in_whitelist")
+'''
+/set_trade_info
+/get_contracts_info
+/get_prices
+/place_orders
+'''
 
 START_BOT_COMMAND = BotCommand(command="start", description="Почати розмову")
 HELP_BOT_COMMAND = BotCommand(command="help", description="Довідка про функції бота")
