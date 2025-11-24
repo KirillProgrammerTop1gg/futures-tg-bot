@@ -6,6 +6,7 @@ HELP_COMMAND = Command("help")
 ADD_TO_WHITELIST_COMMAND = Command("add_user_to_whitelist")
 GET_WHITELIST_COMMAND = Command("get_whitelist")
 DEL_IN_WHITELIST_COMMAND = Command("del_user_in_whitelist")
+SET_TRADE_INFO_COMMAND = Command('set_trade_info')
 '''
 /set_trade_info
 /get_contracts_info
@@ -24,3 +25,4 @@ GET_WHITELIST_BOT_COMMAND = BotCommand(
 DEL_IN_WHITELIST_BOT_COMMAND = BotCommand(
     command="del_user_in_whitelist", description="Видалити юзера із вайтліста"
 )
+SET_TRADE_INFO_BOT_COMMAND = BotCommand(command='set_trade_info', description='редагувати інформацію для трейдингу')

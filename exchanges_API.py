@@ -162,22 +162,59 @@ class exchanges_API:
             f"{self.get_one_prices(self._exchanges[1])}"
         )
     
-    async def place_binance_order(self, qty: float, side: str) -> None:
-        pass
+    def place_binance_order(self, qty: float, side: str) -> dict:
+        params = {
+            'symbol': f'{self._symb}USDT',
+            'side': 'SELL' if side == 'short' else 'BUY',
+            'type': 'MARKET',
+            'quantity': qty,
+        }
+        order = self.binance_client.new_order(**params)
+        return order
     
-    async def place_bybit_order(self, qty: float, side: str) -> None:
-        pass
+    def place_bybit_order(self, qty: float, side: str) -> dict:
+        order = self.bybit_client.place_order(
+            category="linear",
+            symbol=f"{self._symb}USDT",
+            side='Sell' if side == 'short' else 'Buy',
+            orderType="Market",
+            qty=qty,
+        )
+        return order
     
-    async def place_okx_order(self, qty: float, side: str) -> None:
-        pass
+    def place_okx_order(self, qty: float, side: str) -> dict:
+        order = self.okx_trade_client.place_order(
+            instId=f"{self._symb}-USDT-SWAP",
+            tdMode="cross",
+            side='sell' if side == 'short' else 'buy',
+            ordType="market",
+            sz=qty,
+        )
+        return order
     
-    async def place_order(self, qty: float, side: str, exchange: str) -> None:
-        pass
+    async def place_order(self, qty: float, side: str, exchange: str) -> dict:
+        if self.format_query(exchange) == "binance":
+            order = self.place_binance_order(qty, side)
+        elif self.format_query(exchange) == "bybit":
+            order = self.place_bybit_order(qty, side)
+        elif self.format_query(exchange) == "okx":
+            order = self.place_okx_order(qty, side)
+
+        return order
     
-    async def place_orders(self, qty: float, parts: int, long_side_exchange: str) -> None:
-        '''
-            for part in parts:
-                place_long
-                place_short
-        '''
-        pass
+    async def place_orders(self, qty: float, parts: int, long_side_exchange: str) -> List[dict]:
+        short_side_exchange = self._exchanges[1-self._exchanges.index(long_side_exchange)]
+
+        loop = asyncio.get_event_loop()
+        tasks = []
+    
+        for i in range(parts):
+            tasks.append(
+                loop.run_in_executor(None, self.place_order, qty, 'long', long_side_exchange)
+            )
+            tasks.append(
+                loop.run_in_executor(None, self.place_order, qty, 'short', short_side_exchange)
+            )
+    
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        return results
