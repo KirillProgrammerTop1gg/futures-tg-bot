@@ -9,7 +9,7 @@ class RoleCallback(CallbackData, prefix="role", sep=";"):
 
 def role_keyboard_markup():
     builder = InlineKeyboardBuilder()
-    builder.adjust(1, repeat=True)
+    builder.adjust(2, repeat=True)
 
     builder.button(text="юзер", callback_data=RoleCallback(role="user"))
     builder.button(text="адмін", callback_data=RoleCallback(role="admin"))
@@ -30,5 +30,38 @@ def users_keyboard_markup(users):
             text=f"{user['name']} - {user['id']}",
             callback_data=UsersCallback(id=user["id"]),
         )
+
+    return builder.as_markup()
+
+
+class ExchangeCallback(CallbackData, prefix="exchange", sep=";"):
+    exchange: str
+
+
+def exchange_keyboard_markup():
+    builder = InlineKeyboardBuilder()
+    builder.adjust(3, repeat=True)
+
+    exchanges = ["Binance", "Bybit", "OKX"]
+
+    for exchange in exchanges:
+        builder.button(
+            text=exchange, callback_data=ExchangeCallback(exchange=exchange.lower())
+        )
+
+    return builder.as_markup()
+
+
+class PriceStopCallback(CallbackData, prefix="price_stop", sep=";"):
+    is_stop: bool
+
+
+def price_stop_keyboard_markup():
+    builder = InlineKeyboardBuilder()
+    builder.adjust(1, repeat=True)
+
+    builder.button(
+        text="Перестати оновлювати ціну", callback_data=PriceStopCallback(is_stop=True)
+    )
 
     return builder.as_markup()

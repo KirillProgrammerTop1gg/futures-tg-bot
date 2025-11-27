@@ -6,8 +6,19 @@ from pybit.unified_trading import HTTP
 from typing import Optional, Union, Dict, List
 import okx.Account as Account
 import asyncio
+import time
+
 
 class exchanges_API:
+    @staticmethod
+    def get_time_now() -> str:
+        return time.strftime("%H:%M:%S")
+
+    @staticmethod
+    def format_time_now() -> str:
+        t = exchanges_API.get_time_now()
+        return f"Час оновлення: {t}\n\n"
+
     @staticmethod
     def format_query(s: str) -> str:
         return s.lower().replace(" ", "")
@@ -17,7 +28,7 @@ class exchanges_API:
         exchange: str, symb: str, min_qty: str, max_qty: str, step_qty: str
     ) -> str:
         return (
-            f"Інформація про {symb}-{exchange} контракт:\n"
+            f"Інформація про {symb} {exchange} контракт:\n"
             f"  Мінімальний обсяг: {min_qty}\n"
             f"  Максимальний обсяг: {max_qty}\n"
             f"  Розрядність: {step_qty}"
@@ -62,6 +73,13 @@ class exchanges_API:
     @exchanges.setter
     def exchanges(self, new_exchanges: List[str]) -> None:
         self._exchanges = new_exchanges
+
+    def clean_info(self) -> None:
+        self._exchanges = []
+        self._symb = ""
+
+    def is_enough_info(self) -> bool:
+        return bool(self._symb) and bool(len(self._exchanges))
 
     def get_binance_contract_info(self) -> str:
         symbol = self._symb
@@ -116,7 +134,8 @@ class exchanges_API:
 
     def get_contracts_info(self) -> str:
         return (
-            f"Інформація про контракти токенів на біржах:\n\n"
+            f"Інформація про контракти токенів на біржах:\n"
+            f"{self.format_time_now()}"
             f"{self.one_contract_info(self._exchanges[0])}\n\n"
             f"{self.one_contract_info(self._exchanges[1])}"
         )
@@ -151,47 +170,48 @@ class exchanges_API:
 
         return (
             f"Токен {symbol} на біржі {exchange}:\n"
-            f"  Купляєте токен за {max_price} ({max_price} USDT -> 1 {symbol})\n"
-            f"  Продаєте токен за {min_price} (1 {symbol} -> {min_price} USDT)"
+            f"  (LONG) Купляєте токен за {max_price} USDT ({max_price} USDT -> 1 {symbol})\n"
+            f"  (SHORT) Продаєте токен за {min_price} USDT (1 {symbol} -> {min_price} USDT)"
         )
 
     def get_prices(self):
         return (
-            f"Інформація про ціни токена на різних біржах:\n\n"
+            f"Інформація про ціни токена на різних біржах:\n"
+            f"{self.format_time_now()}"
             f"{self.get_one_prices(self._exchanges[0])}\n\n"
             f"{self.get_one_prices(self._exchanges[1])}"
         )
-    
+
     def place_binance_order(self, qty: float, side: str) -> dict:
         params = {
-            'symbol': f'{self._symb}USDT',
-            'side': 'SELL' if side == 'short' else 'BUY',
-            'type': 'MARKET',
-            'quantity': qty,
+            "symbol": f"{self._symb}USDT",
+            "side": "SELL" if side == "short" else "BUY",
+            "type": "MARKET",
+            "quantity": qty,
         }
         order = self.binance_client.new_order(**params)
         return order
-    
+
     def place_bybit_order(self, qty: float, side: str) -> dict:
         order = self.bybit_client.place_order(
             category="linear",
             symbol=f"{self._symb}USDT",
-            side='Sell' if side == 'short' else 'Buy',
+            side="Sell" if side == "short" else "Buy",
             orderType="Market",
             qty=qty,
         )
         return order
-    
+
     def place_okx_order(self, qty: float, side: str) -> dict:
         order = self.okx_trade_client.place_order(
             instId=f"{self._symb}-USDT-SWAP",
             tdMode="cross",
-            side='sell' if side == 'short' else 'buy',
+            side="sell" if side == "short" else "buy",
             ordType="market",
             sz=qty,
         )
         return order
-    
+
     async def place_order(self, qty: float, side: str, exchange: str) -> dict:
         if self.format_query(exchange) == "binance":
             order = self.place_binance_order(qty, side)
@@ -201,20 +221,28 @@ class exchanges_API:
             order = self.place_okx_order(qty, side)
 
         return order
-    
-    async def place_orders(self, qty: float, parts: int, long_side_exchange: str) -> List[dict]:
-        short_side_exchange = self._exchanges[1-self._exchanges.index(long_side_exchange)]
+
+    async def place_orders(
+        self, qty: float, parts: int, long_side_exchange: str
+    ) -> List[dict]:
+        short_side_exchange = self._exchanges[
+            1 - self._exchanges.index(long_side_exchange)
+        ]
 
         loop = asyncio.get_event_loop()
         tasks = []
-    
+
         for i in range(parts):
             tasks.append(
-                loop.run_in_executor(None, self.place_order, qty, 'long', long_side_exchange)
+                loop.run_in_executor(
+                    None, self.place_order, qty, "long", long_side_exchange
+                )
             )
             tasks.append(
-                loop.run_in_executor(None, self.place_order, qty, 'short', short_side_exchange)
+                loop.run_in_executor(
+                    None, self.place_order, qty, "short", short_side_exchange
+                )
             )
-    
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
         return results
