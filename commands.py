@@ -9,6 +9,8 @@ DEL_IN_WHITELIST_COMMAND = Command("del_user_in_whitelist")
 SET_TRADE_INFO_COMMAND = Command("set_trade_info")
 GET_CONTRACTS_INFO_COMMAND = Command("get_contracts_info")
 GET_PRICES_COMMAND = Command("get_prices")
+OPEN_ORDER_COMMAND = Command("open_order")
+
 
 START_BOT_COMMAND = BotCommand(command="start", description="Почати розмову")
 HELP_BOT_COMMAND = BotCommand(command="help", description="Довідка про функції бота")
@@ -32,3 +34,4 @@ GET_PRICES_BOT_COMMAND = BotCommand(
     command="get_prices",
     description="Отримати ціни токена на різних біржах та в різних напрямках",
 )
+OPEN_ORDER_BOT_COMMAND = BotCommand(command="open_order", description="Відкрити ордера")

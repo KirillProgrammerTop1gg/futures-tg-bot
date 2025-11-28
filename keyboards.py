@@ -38,11 +38,9 @@ class ExchangeCallback(CallbackData, prefix="exchange", sep=";"):
     exchange: str
 
 
-def exchange_keyboard_markup():
+def exchange_keyboard_markup(exchanges):
     builder = InlineKeyboardBuilder()
     builder.adjust(3, repeat=True)
-
-    exchanges = ["Binance", "Bybit", "OKX"]
 
     for exchange in exchanges:
         builder.button(
@@ -52,16 +50,17 @@ def exchange_keyboard_markup():
     return builder.as_markup()
 
 
-class PriceStopCallback(CallbackData, prefix="price_stop", sep=";"):
-    is_stop: bool
+class ActionCallback(CallbackData, prefix="price_stop", sep=";"):
+    action: str
 
 
-def price_stop_keyboard_markup():
+def action_keyboard_markup(actions: List[Dict[str, str]]):
     builder = InlineKeyboardBuilder()
     builder.adjust(1, repeat=True)
 
-    builder.button(
-        text="Перестати оновлювати ціну", callback_data=PriceStopCallback(is_stop=True)
-    )
+    for action in actions:
+        builder.button(
+            text=action["text"], callback_data=ActionCallback(action=action["data"])
+        )
 
     return builder.as_markup()

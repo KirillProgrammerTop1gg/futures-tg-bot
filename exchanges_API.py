@@ -78,6 +78,9 @@ class exchanges_API:
         self._exchanges = []
         self._symb = ""
 
+    def get_another_exchange(self, exchange: str) -> str:
+        return self._exchanges[1 - self._exchanges.index(exchange)]
+
     def is_enough_info(self) -> bool:
         return bool(self._symb) and bool(len(self._exchanges))
 
@@ -190,7 +193,7 @@ class exchanges_API:
             "quantity": qty,
         }
         order = self.binance_client.new_order(**params)
-        return order
+        return order["orderId"]
 
     def place_bybit_order(self, qty: float, side: str) -> dict:
         order = self.bybit_client.place_order(
@@ -200,7 +203,7 @@ class exchanges_API:
             orderType="Market",
             qty=qty,
         )
-        return order
+        return order["result"]["orderId"]
 
     def place_okx_order(self, qty: float, side: str) -> dict:
         order = self.okx_trade_client.place_order(
@@ -210,9 +213,9 @@ class exchanges_API:
             ordType="market",
             sz=qty,
         )
-        return order
+        return order["data"][0]["ordId"]
 
-    async def place_order(self, qty: float, side: str, exchange: str) -> dict:
+    def place_order(self, qty: float, side: str, exchange: str) -> dict:
         if self.format_query(exchange) == "binance":
             order = self.place_binance_order(qty, side)
         elif self.format_query(exchange) == "bybit":
@@ -225,9 +228,7 @@ class exchanges_API:
     async def place_orders(
         self, qty: float, parts: int, long_side_exchange: str
     ) -> List[dict]:
-        short_side_exchange = self._exchanges[
-            1 - self._exchanges.index(long_side_exchange)
-        ]
+        short_side_exchange = self.get_another_exchange(long_side_exchange)
 
         loop = asyncio.get_event_loop()
         tasks = []
@@ -245,4 +246,5 @@ class exchanges_API:
             )
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
+        print(results)
         return results
