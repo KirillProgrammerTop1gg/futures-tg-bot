@@ -81,7 +81,7 @@ async def allow_user(message: Message) -> bool:
     expr = message.from_user.id in get_ids_from_whitelist(get_whitelist())
     if not expr:
         await message.answer(
-            "Ви не знаходитесь у вайтлісті, запитайте адміністратора, щоб він вас додав або ідіть геть!"
+            "Ви не в білому списку. Зверніться до адміністратора, щоб вас додали."
         )
     return expr
 
@@ -99,7 +99,7 @@ async def is_trade_info(message: Message) -> bool:
     is_info = exch_apis.is_enough_info()
     if not is_info:
         await message.answer(
-            "Ви ще не додали інформацію для трейдинга\n"
+            "Ви ще не додали інформацію для трейдингу\n"
             "Спробуйте використати команду: /set_trade_info"
         )
     return is_info
@@ -207,10 +207,10 @@ async def send_whitelist(message: Message) -> None:
 async def callb_user(callback: CallbackQuery, callback_data: UsersCallback) -> None:
     userId = callback_data.id
     if callback.from_user.id == userId:
-        await callback.message.answer(f"Ви не можете видалити самого себе!")
+        await callback.message.answer("Ви не можете видалити самого себе!")
     else:
         del_in_whitelist(userId)
-        await callback.message.answer(f"Юзер успішно видален з вайтліста")
+        await callback.message.answer("Юзер успішно видалено з вайтліста")
     await callback.message.delete()
 
 
@@ -284,11 +284,9 @@ async def get_contracts_info(message: Message) -> None:
 
 @dp.message(GET_PRICES_COMMAND, allow_user, is_trade_info)
 async def get_prices(message: Message) -> None:
-    # text = exch_apis.get_prices()
     markup = action_keyboard_markup(
         [{"text": "Перестати оновлювати ціну", "data": "stop_price"}]
     )
-    # sent_msg = await message.answer(text, reply_markup=markup)
     task = asyncio.create_task(update_price_message(message, markup))
     update_tasks[message.from_user.id] = task
 
@@ -341,7 +339,10 @@ async def set_order_cycles(message: Message, state: FSMContext) -> None:
         if cycles <= 0:
             raise ValueError
     except ValueError:
-        return await message.answer("Ви ввели не правильну к-сть!\n" "Спробуйте ще!")
+        return await message.answer(
+            "Ви ввели не правильну к-сть повторень (натуральне число)!\n"
+            "Спробуйте ще!"
+        )
 
     await state.update_data(cycles=cycles)
 
